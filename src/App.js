@@ -1,5 +1,6 @@
 import { Mapbox } from "./Map/Mapbox";
 import { Layers, Overlay } from "./Layers";
+import "bootstrap/dist/css/bootstrap.min.css";
 import "./App.css";
 
 function App() {
