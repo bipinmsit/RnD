@@ -73,8 +73,8 @@ const Overlay = () => {
     const buffered = turf.buffer(
       turf.featureCollection([
         turf.lineString([
+          getCoords("MMV", atsPoints.features),
           getCoords("DPN", atsPoints.features),
-          getCoords("BBB", atsPoints.features),
         ]),
       ]),
       70,
@@ -185,39 +185,42 @@ const Overlay = () => {
 
     const bridgeUtil = (u, visited, disc, low, parent) => {
       // Mark the current node as visited
-      visited[u] = true;
+      let indexB = getIndex(u, airports);
+      visited[indexB] = true;
 
       // Initialize discovery time and low value
-      disc[u] = low[u] = ++time;
+      disc[indexB] = low[indexB] = ++time;
 
       // Go through all vertices adjacent to this
       //   console.log(adjacencyList);
-
-      for (let i of adjacencyList.get(u)) {
+      let uniqArr = [...new Set(adjacencyList.get(u))];
+      for (let i of uniqArr) {
         let v = i; // v is current adjacent of u
 
         // If v is not visited yet, then make it a child
         // of u in DFS tree and recur for it.
         // If v is not visited yet, then recur for it
-        if (!visited[v]) {
-          parent[v] = u;
+        let indexA = getIndex(v, airports);
+        if (!visited[indexA]) {
+          parent[indexA] = u;
           bridgeUtil(v, visited, disc, low, parent);
 
           // Check if the subtree rooted with v has a
           // connection to one of the ancestors of u
-          low[u] = Math.min(low[u], low[v]);
+          low[indexB] = Math.min(low[indexB], low[indexA]);
 
           // If the lowest vertex reachable from subtree
           // under v is below u in DFS tree, then u-v is
           // a bridge
-          if (low[v] > disc[u]) {
+          if (low[indexA] > disc[indexB]) {
             // document.write(u + " " + v + "<br>");
             unwantedLines.push([...[u, v]]);
           }
         }
 
         // Update low value of u for parent function calls.
-        else if (v !== parent[u]) low[u] = Math.min(low[u], disc[v]);
+        else if (v !== parent[indexB])
+          low[indexB] = Math.min(low[indexB], disc[indexA]);
       }
     };
 
@@ -346,7 +349,7 @@ const Overlay = () => {
       isVisited[indexCurr] = false;
     };
 
-    printAllPaths("DPN", "BBB");
+    printAllPaths("MMV", "DPN");
     // printAllPaths(fromTo.from, fromTo.to);
     console.log(possiblePaths);
 
@@ -363,20 +366,20 @@ const Overlay = () => {
     // console.log(flattenArray);
 
     map.on("load", () => {
-      // // Filtered ATS Line
-      // map.addSource("filteredLines", {
-      //   type: "geojson",
-      //   data: turf.featureCollection(filteredLines),
-      // });
-      // map.addLayer({
-      //   id: "filteredLines",
-      //   type: "line",
-      //   source: "filteredLines",
-      //   paint: {},
-      //   layout: {
-      //     visibility: "visible",
-      //   },
-      // });
+      // Filtered ATS Line
+      map.addSource("filteredLines", {
+        type: "geojson",
+        data: turf.featureCollection(filteredLines),
+      });
+      map.addLayer({
+        id: "filteredLines",
+        type: "line",
+        source: "filteredLines",
+        paint: {},
+        layout: {
+          visibility: "visible",
+        },
+      });
 
       map.addSource("finalFilteredLines", {
         type: "geojson",
