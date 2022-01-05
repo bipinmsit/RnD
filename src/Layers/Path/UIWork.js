@@ -1,4 +1,5 @@
-import React, { useState, memo } from "react";
+import React, { useState, useEffect, useContext, memo } from "react";
+import { MapContextMapbox } from "../../Map/Mapbox";
 import "./UIWork.css";
 
 const UIWork = ({ getData }) => {

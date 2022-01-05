@@ -64,37 +64,37 @@ const Overlay = () => {
       return;
     }
 
-    // if (fromTo.from === "" && fromTo.to === "") {
-    //   return;
-    // }
+    if (fromTo.from === "" && fromTo.to === "") {
+      return;
+    }
 
-    //console.log(fromTo);
-
-    const buffered = turf.buffer(
-      turf.featureCollection([
-        turf.lineString([
-          getCoords("MMV", atsPoints.features),
-          getCoords("DPN", atsPoints.features),
-        ]),
-      ]),
-      70,
-      {
-        units: "nauticalmiles",
-      }
-    );
+    console.log(fromTo);
 
     // const buffered = turf.buffer(
     //   turf.featureCollection([
     //     turf.lineString([
-    //       getCoords(fromTo.from, atsPoints.features),
-    //       getCoords(fromTo.to, atsPoints.features),
+    //       getCoords("MMV", atsPoints.features),
+    //       getCoords("DPN", atsPoints.features),
     //     ]),
     //   ]),
-    //   65,
+    //   70,
     //   {
     //     units: "nauticalmiles",
     //   }
     // );
+
+    const buffered = turf.buffer(
+      turf.featureCollection([
+        turf.lineString([
+          getCoords(fromTo.from, atsPoints.features),
+          getCoords(fromTo.to, atsPoints.features),
+        ]),
+      ]),
+      65,
+      {
+        units: "nauticalmiles",
+      }
+    );
 
     const getBbox = turf.bbox(buffered);
     map.fitBounds([
@@ -283,6 +283,7 @@ const Overlay = () => {
 
     // Printing all possible paths
     const printAllPaths = (s, d) => {
+      console.log(s, d);
       let isVisited = new Array(airports.length);
       for (let i = 0; i < airports.length; i++) isVisited[i] = false;
       let pathList = [];
@@ -349,8 +350,8 @@ const Overlay = () => {
       isVisited[indexCurr] = false;
     };
 
-    printAllPaths("MMV", "DPN");
-    // printAllPaths(fromTo.from, fromTo.to);
+    // printAllPaths("MMV", "DPN");
+    printAllPaths(fromTo.from, fromTo.to);
     console.log(possiblePaths);
 
     let possiblePathCoords = [];
@@ -365,8 +366,11 @@ const Overlay = () => {
     const flattenArray = [].concat.apply([], possiblePathCoords);
     // console.log(flattenArray);
 
+    console.log(map, "test");
+
     map.on("load", () => {
       // Filtered ATS Line
+      console.log("map loading");
       map.addSource("filteredLines", {
         type: "geojson",
         data: turf.featureCollection(filteredLines),
@@ -461,16 +465,16 @@ const Overlay = () => {
     });
 
     return () => {
-      map.off();
+      // map.off();
       // map.remove();
     };
-  }, [atsLines, atsPoints, map]);
+  }, [atsLines, atsPoints, map, fromTo]);
 
   const getData = useCallback((e) => {
     setFromTo({ from: e.from, to: e.to });
   }, []);
 
-  return <div>{/* <UIWork getData={getData} /> */}</div>;
+  return <div>{map ? <UIWork getData={getData} /> : null}</div>;
 };
 
 export default memo(Overlay);
