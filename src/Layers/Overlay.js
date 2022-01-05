@@ -33,6 +33,14 @@ const Overlay = () => {
     return index;
   };
 
+  const courseCheck = (currCourse, prevCourse) => {
+    return Math.abs(currCourse - prevCourse) < 180
+      ? Math.abs(currCourse - prevCourse)
+      : currCourse >= prevCourse
+      ? prevCourse + (360 - currCourse)
+      : currCourse + (360 - prevCourse);
+  };
+
   useEffect(() => {
     fetch(ATSLine)
       .then((res) => res.json())
@@ -65,11 +73,11 @@ const Overlay = () => {
     const buffered = turf.buffer(
       turf.featureCollection([
         turf.lineString([
-          getCoords("MMV", atsPoints.features),
           getCoords("DPN", atsPoints.features),
+          getCoords("BBB", atsPoints.features),
         ]),
       ]),
-      65,
+      70,
       {
         units: "nauticalmiles",
       }
@@ -213,8 +221,9 @@ const Overlay = () => {
       }
     };
 
+    bridge();
+
     const finalFilteredLines = () => {
-      bridge();
       let indices = [];
       let tempArr = [...filteredLines];
 
@@ -240,7 +249,6 @@ const Overlay = () => {
     };
 
     let finalRoutes = [];
-
     for (let i = 0; i < finalFilteredLines().length; i++) {
       finalRoutes.push([
         finalFilteredLines()[i].properties.From,
@@ -295,15 +303,41 @@ const Overlay = () => {
       let uniqArr = [...new Set(finalAdjacencyList.get(u))];
       for (let i = 0; i < uniqArr.length; i++) {
         let indexA = getIndex(uniqArr[i], airports);
-        // let indexA = getIndex(uniqArr[i], airports);
-        if (!isVisited[indexA] && isVisited[indexA] !== undefined) {
-          // store current node
-          // in path[]
-          localPathList.push(uniqArr[i]);
+        if (!isVisited[indexA]) {
+          if (localPathList.length > 1) {
+            let course1 = finalFilteredLines().filter(
+              (val) =>
+                (val.properties.From ===
+                  localPathList[localPathList.length - 2] &&
+                  val.properties.To ===
+                    localPathList[localPathList.length - 1]) ||
+                (val.properties.To ===
+                  localPathList[localPathList.length - 2] &&
+                  val.properties.From ===
+                    localPathList[localPathList.length - 1])
+            )[0].properties.Course;
+
+            let course2 = finalFilteredLines().filter(
+              (val) =>
+                (val.properties.From ===
+                  localPathList[localPathList.length - 1] &&
+                  val.properties.To === uniqArr[i]) ||
+                (val.properties.To ===
+                  localPathList[localPathList.length - 1] &&
+                  val.properties.From === uniqArr[i])
+            )[0].properties.Course;
+
+            if (courseCheck(course2, course1) < 90) {
+              localPathList.push(uniqArr[i]);
+            } else {
+              continue;
+            }
+          } else {
+            localPathList.push(uniqArr[i]);
+          }
+
           printAllPathsUtil(uniqArr[i], d, isVisited, localPathList);
 
-          // remove current node
-          // in path[]
           localPathList.splice(localPathList.indexOf(uniqArr[i]), 1);
         }
       }
@@ -312,37 +346,37 @@ const Overlay = () => {
       isVisited[indexCurr] = false;
     };
 
-    printAllPaths("MMV", "DPN");
+    printAllPaths("DPN", "BBB");
     // printAllPaths(fromTo.from, fromTo.to);
     console.log(possiblePaths);
 
-    let finalPathCoords = [];
-
+    let possiblePathCoords = [];
     for (let i = 0; i < possiblePaths.length; i++) {
       let tempArr2 = [];
       for (let j = 0; j < possiblePaths[i].length; j++) {
         tempArr2.push(getCoords(possiblePaths[i][j], filteredPoints));
       }
-      finalPathCoords.push(tempArr2);
+      possiblePathCoords.push(tempArr2);
     }
 
-    console.log(finalPathCoords);
+    const flattenArray = [].concat.apply([], possiblePathCoords);
+    // console.log(flattenArray);
 
     map.on("load", () => {
-      // Filtered ATS Line
-      map.addSource("filteredLines", {
-        type: "geojson",
-        data: turf.featureCollection(filteredLines),
-      });
-      map.addLayer({
-        id: "filteredLines",
-        type: "line",
-        source: "filteredLines",
-        paint: {},
-        layout: {
-          visibility: "visible",
-        },
-      });
+      // // Filtered ATS Line
+      // map.addSource("filteredLines", {
+      //   type: "geojson",
+      //   data: turf.featureCollection(filteredLines),
+      // });
+      // map.addLayer({
+      //   id: "filteredLines",
+      //   type: "line",
+      //   source: "filteredLines",
+      //   paint: {},
+      //   layout: {
+      //     visibility: "visible",
+      //   },
+      // });
 
       map.addSource("finalFilteredLines", {
         type: "geojson",
@@ -354,6 +388,25 @@ const Overlay = () => {
         source: "finalFilteredLines",
         paint: {
           "line-color": "red",
+          "line-width": 3,
+          "line-opacity": 0.5,
+        },
+        layout: {
+          visibility: "visible",
+        },
+      });
+
+      // path based on course
+      map.addSource("filteredFeature2", {
+        type: "geojson",
+        data: turf.featureCollection([turf.lineString(flattenArray)]),
+      });
+      map.addLayer({
+        id: "filteredFeature2",
+        type: "line",
+        source: "filteredFeature2",
+        paint: {
+          "line-color": "blue",
           "line-width": 3,
           "line-opacity": 0.5,
         },
@@ -410,11 +463,11 @@ const Overlay = () => {
     };
   }, [atsLines, atsPoints, map]);
 
-  return (
-    <div>
-      <UIWork getData={(e) => setFromTo({ from: e.from, to: e.to })} />
-    </div>
-  );
+  const getData = useCallback((e) => {
+    setFromTo({ from: e.from, to: e.to });
+  }, []);
+
+  return <div>{/* <UIWork getData={getData} /> */}</div>;
 };
 
 export default memo(Overlay);
