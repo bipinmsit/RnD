@@ -73,11 +73,11 @@ const Overlay = () => {
     const buffered = turf.buffer(
       turf.featureCollection([
         turf.lineString([
-          getCoords("MMV", atsPoints.features),
           getCoords("DPN", atsPoints.features),
+          getCoords("JJB", atsPoints.features),
         ]),
       ]),
-      70,
+      200,
       {
         units: "nauticalmiles",
       }
@@ -303,12 +303,12 @@ const Overlay = () => {
       let indexCurr = getIndex(u, airports);
       isVisited[indexCurr] = true;
 
-      let uniqArr = [...new Set(finalAdjacencyList.get(u))];
+      let uniqArr = [...new Set(adjacencyList.get(u))];
       for (let i = 0; i < uniqArr.length; i++) {
         let indexA = getIndex(uniqArr[i], airports);
         if (!isVisited[indexA]) {
           if (localPathList.length > 1) {
-            let course1 = finalFilteredLines().filter(
+            let course1 = filteredLines.filter(
               (val) =>
                 (val.properties.From ===
                   localPathList[localPathList.length - 2] &&
@@ -320,7 +320,7 @@ const Overlay = () => {
                     localPathList[localPathList.length - 1])
             )[0].properties.Course;
 
-            let course2 = finalFilteredLines().filter(
+            let course2 = filteredLines.filter(
               (val) =>
                 (val.properties.From ===
                   localPathList[localPathList.length - 1] &&
@@ -330,7 +330,7 @@ const Overlay = () => {
                   val.properties.From === uniqArr[i])
             )[0].properties.Course;
 
-            if (courseCheck(course2, course1) < 90) {
+            if (courseCheck(course2, course1) < 50) {
               localPathList.push(uniqArr[i]);
             } else {
               continue;
@@ -349,7 +349,7 @@ const Overlay = () => {
       isVisited[indexCurr] = false;
     };
 
-    printAllPaths("MMV", "DPN");
+    printAllPaths("DPN", "JJB");
     // printAllPaths(fromTo.from, fromTo.to);
     console.log(possiblePaths);
 
@@ -366,6 +366,47 @@ const Overlay = () => {
     // console.log(flattenArray);
 
     map.on("load", () => {
+      // Buffered Polygon
+      map.addSource("Buffer", {
+        type: "geojson",
+        data: buffered,
+      });
+      map.addLayer({
+        id: "Buffer",
+        type: "fill",
+        source: "Buffer",
+        paint: {
+          "fill-color": "grey",
+          "fill-opacity": 0.2,
+        },
+        layout: {
+          visibility: "visible",
+        },
+      });
+
+      // Adding NewWayPoint Labels
+      map.addSource("NewWayPointLabels", {
+        type: "vector",
+        url: "mapbox://rahulsds.a2ttfiym",
+      });
+      map.addLayer({
+        id: "NewWayPointLabels",
+        type: "symbol",
+        source: "NewWayPointLabels",
+        "source-layer": "NewWayPoint-6ug16e",
+        layout: {
+          visibility: "visible",
+          "text-field": ["get", "PNAME"],
+          "text-variable-anchor": ["top", "bottom", "left", "right"],
+          "text-radial-offset": 0.5,
+          "text-justify": "auto",
+          "text-size": 8,
+        },
+        paint: {
+          // "text-color": "blue",
+        },
+      });
+
       // Filtered ATS Line
       map.addSource("filteredLines", {
         type: "geojson",
@@ -415,47 +456,6 @@ const Overlay = () => {
         },
         layout: {
           visibility: "visible",
-        },
-      });
-
-      // Buffered Polygon
-      map.addSource("Buffer", {
-        type: "geojson",
-        data: buffered,
-      });
-      map.addLayer({
-        id: "Buffer",
-        type: "fill",
-        source: "Buffer",
-        paint: {
-          "fill-color": "grey",
-          "fill-opacity": 0.2,
-        },
-        layout: {
-          visibility: "visible",
-        },
-      });
-
-      // Adding NewWayPoint Labels
-      map.addSource("NewWayPointLabels", {
-        type: "vector",
-        url: "mapbox://rahulsds.a2ttfiym",
-      });
-      map.addLayer({
-        id: "NewWayPointLabels",
-        type: "symbol",
-        source: "NewWayPointLabels",
-        "source-layer": "NewWayPoint-6ug16e",
-        layout: {
-          visibility: "visible",
-          "text-field": ["get", "PNAME"],
-          "text-variable-anchor": ["top", "bottom", "left", "right"],
-          "text-radial-offset": 0.5,
-          "text-justify": "auto",
-          "text-size": 8,
-        },
-        paint: {
-          // "text-color": "blue",
         },
       });
     });
