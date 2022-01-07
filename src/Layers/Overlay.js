@@ -64,37 +64,37 @@ const Overlay = () => {
       return;
     }
 
-    // if (fromTo.from === "" && fromTo.to === "") {
-    //   return;
-    // }
+    if (fromTo.from === "" && fromTo.to === "") {
+      return;
+    }
 
-    //console.log(fromTo);
-
-    const buffered = turf.buffer(
-      turf.featureCollection([
-        turf.lineString([
-          getCoords("DPN", atsPoints.features),
-          getCoords("JJB", atsPoints.features),
-        ]),
-      ]),
-      200,
-      {
-        units: "nauticalmiles",
-      }
-    );
+    console.log(fromTo.from, fromTo.to);
 
     // const buffered = turf.buffer(
     //   turf.featureCollection([
     //     turf.lineString([
-    //       getCoords(fromTo.from, atsPoints.features),
-    //       getCoords(fromTo.to, atsPoints.features),
+    //       getCoords("MMV", atsPoints.features),
+    //       getCoords("DPN", atsPoints.features),
     //     ]),
     //   ]),
-    //   65,
+    //   70,
     //   {
     //     units: "nauticalmiles",
     //   }
     // );
+
+    const buffered = turf.buffer(
+      turf.featureCollection([
+        turf.lineString([
+          getCoords(fromTo.from, atsPoints.features),
+          getCoords(fromTo.to, atsPoints.features),
+        ]),
+      ]),
+      300,
+      {
+        units: "nauticalmiles",
+      }
+    );
 
     const getBbox = turf.bbox(buffered);
     map.fitBounds([
@@ -330,7 +330,7 @@ const Overlay = () => {
                   val.properties.From === uniqArr[i])
             )[0].properties.Course;
 
-            if (courseCheck(course2, course1) < 50) {
+            if (courseCheck(course2, course1) < 25) {
               localPathList.push(uniqArr[i]);
             } else {
               continue;
@@ -349,8 +349,8 @@ const Overlay = () => {
       isVisited[indexCurr] = false;
     };
 
-    printAllPaths("DPN", "JJB");
-    // printAllPaths(fromTo.from, fromTo.to);
+    // printAllPaths("DPN", "JJB");
+    printAllPaths(fromTo.from, fromTo.to);
     console.log(possiblePaths);
 
     let possiblePathCoords = [];
@@ -365,7 +365,9 @@ const Overlay = () => {
     const flattenArray = [].concat.apply([], possiblePathCoords);
     // console.log(flattenArray);
 
-    map.on("load", () => {
+    console.log(map.loaded());
+
+    map.on("idle", () => {
       // Buffered Polygon
       map.addSource("Buffer", {
         type: "geojson",
@@ -441,14 +443,14 @@ const Overlay = () => {
       });
 
       // path based on course
-      map.addSource("filteredFeature2", {
+      map.addSource("flattenArray", {
         type: "geojson",
         data: turf.featureCollection([turf.lineString(flattenArray)]),
       });
       map.addLayer({
-        id: "filteredFeature2",
+        id: "flattenArray",
         type: "line",
-        source: "filteredFeature2",
+        source: "flattenArray",
         paint: {
           "line-color": "blue",
           "line-width": 3,
@@ -462,15 +464,30 @@ const Overlay = () => {
 
     return () => {
       map.off();
-      // map.remove();
+      map.remove();
+      // map.getSource("Buffer")=undefined;
+      //   map.removeLayer("Buffer");
+      //   map.removeSource("Buffer");
+      // map.removeLayer("NewWayPointLabels");
+      // map.removeSource("NewWayPointLabels");
+      // map.removeLayer("filteredLines");
+      // map.removeSource("filteredLines");
+      // map.removeLayer("finalFilteredLines");
+      // map.removeSource("finalFilteredLines");
+      // map.removeLayer("flattenArray");
+      // map.removeSource("flattenArray");
     };
-  }, [atsLines, atsPoints, map]);
+  }, [atsLines, atsPoints, map, fromTo.from, fromTo.to]);
 
   const getData = useCallback((e) => {
     setFromTo({ from: e.from, to: e.to });
   }, []);
 
-  return <div>{/* <UIWork getData={getData} /> */}</div>;
+  return (
+    <div>
+      <UIWork getData={getData} />
+    </div>
+  );
 };
 
 export default memo(Overlay);

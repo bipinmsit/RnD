@@ -1,11 +1,12 @@
-import React, { useState, memo } from "react";
+import React, { useState, useEffect, useContext, memo } from "react";
+import { MapContextMapbox } from "../../Map/Mapbox";
 import "./UIWork.css";
 
 const UIWork = ({ getData }) => {
   const [fromData, setFromData] = useState("");
   const [toData, setToData] = useState("");
 
-  const airports = ["MMV", "DPN", "BBB"];
+  const airports = ["MMV", "DPN", "BBB", "VTK", "JJB"];
 
   console.log("rerender");
   return (
