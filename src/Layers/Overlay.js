@@ -68,8 +68,6 @@ const Overlay = () => {
       return;
     }
 
-    console.log(fromTo.from, fromTo.to);
-
     // const buffered = turf.buffer(
     //   turf.featureCollection([
     //     turf.lineString([
@@ -283,6 +281,7 @@ const Overlay = () => {
 
     // Printing all possible paths
     const printAllPaths = (s, d) => {
+      console.log(s, d);
       let isVisited = new Array(airports.length);
       for (let i = 0; i < airports.length; i++) isVisited[i] = false;
       let pathList = [];
@@ -349,7 +348,6 @@ const Overlay = () => {
       isVisited[indexCurr] = false;
     };
 
-    // printAllPaths("DPN", "JJB");
     printAllPaths(fromTo.from, fromTo.to);
     console.log(possiblePaths);
 
@@ -364,8 +362,6 @@ const Overlay = () => {
 
     const flattenArray = [].concat.apply([], possiblePathCoords);
     // console.log(flattenArray);
-
-    console.log(map.loaded());
 
     map.on("idle", () => {
       // Buffered Polygon
@@ -410,6 +406,7 @@ const Overlay = () => {
       });
 
       // Filtered ATS Line
+      console.log("map loading");
       map.addSource("filteredLines", {
         type: "geojson",
         data: turf.featureCollection(filteredLines),
