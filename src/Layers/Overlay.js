@@ -281,7 +281,6 @@ const Overlay = () => {
 
     // Printing all possible paths
     const printAllPaths = (s, d) => {
-      console.log(s, d);
       let isVisited = new Array(airports.length);
       for (let i = 0; i < airports.length; i++) isVisited[i] = false;
       let pathList = [];
@@ -406,7 +405,6 @@ const Overlay = () => {
       });
 
       // Filtered ATS Line
-      console.log("map loading");
       map.addSource("filteredLines", {
         type: "geojson",
         data: turf.featureCollection(filteredLines),
