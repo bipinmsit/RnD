@@ -362,99 +362,105 @@ const Overlay = () => {
     const flattenArray = [].concat.apply([], possiblePathCoords);
     // console.log(flattenArray);
 
-    map.on("idle", () => {
-      // Buffered Polygon
-      map.addSource("Buffer", {
-        type: "geojson",
-        data: buffered,
-      });
-      map.addLayer({
-        id: "Buffer",
-        type: "fill",
-        source: "Buffer",
-        paint: {
-          "fill-color": "grey",
-          "fill-opacity": 0.2,
-        },
-        layout: {
-          visibility: "visible",
-        },
-      });
+    map.on("render", () => {
+      if (!map.loaded()) {
+        return;
+      }
 
-      // Adding NewWayPoint Labels
-      map.addSource("NewWayPointLabels", {
-        type: "vector",
-        url: "mapbox://rahulsds.a2ttfiym",
-      });
-      map.addLayer({
-        id: "NewWayPointLabels",
-        type: "symbol",
-        source: "NewWayPointLabels",
-        "source-layer": "NewWayPoint-6ug16e",
-        layout: {
-          visibility: "visible",
-          "text-field": ["get", "PNAME"],
-          "text-variable-anchor": ["top", "bottom", "left", "right"],
-          "text-radial-offset": 0.5,
-          "text-justify": "auto",
-          "text-size": 8,
-        },
-        paint: {
-          // "text-color": "blue",
-        },
-      });
+      if (!map.getSource("Buffer")) {
+        // Buffered Polygon
+        map.addSource("Buffer", {
+          type: "geojson",
+          data: buffered,
+        });
+        map.addLayer({
+          id: "Buffer",
+          type: "fill",
+          source: "Buffer",
+          paint: {
+            "fill-color": "grey",
+            "fill-opacity": 0.2,
+          },
+          layout: {
+            visibility: "visible",
+          },
+        });
 
-      // Filtered ATS Line
-      map.addSource("filteredLines", {
-        type: "geojson",
-        data: turf.featureCollection(filteredLines),
-      });
-      map.addLayer({
-        id: "filteredLines",
-        type: "line",
-        source: "filteredLines",
-        paint: {},
-        layout: {
-          visibility: "visible",
-        },
-      });
+        // Adding NewWayPoint Labels
+        map.addSource("NewWayPointLabels", {
+          type: "vector",
+          url: "mapbox://rahulsds.a2ttfiym",
+        });
+        map.addLayer({
+          id: "NewWayPointLabels",
+          type: "symbol",
+          source: "NewWayPointLabels",
+          "source-layer": "NewWayPoint-6ug16e",
+          layout: {
+            visibility: "visible",
+            "text-field": ["get", "PNAME"],
+            "text-variable-anchor": ["top", "bottom", "left", "right"],
+            "text-radial-offset": 0.5,
+            "text-justify": "auto",
+            "text-size": 8,
+          },
+          paint: {
+            // "text-color": "blue",
+          },
+        });
 
-      map.addSource("finalFilteredLines", {
-        type: "geojson",
-        data: turf.featureCollection(finalFilteredLines()),
-      });
-      map.addLayer({
-        id: "finalFilteredLines",
-        type: "line",
-        source: "finalFilteredLines",
-        paint: {
-          "line-color": "red",
-          "line-width": 3,
-          "line-opacity": 0.5,
-        },
-        layout: {
-          visibility: "visible",
-        },
-      });
+        // Filtered ATS Line
+        map.addSource("filteredLines", {
+          type: "geojson",
+          data: turf.featureCollection(filteredLines),
+        });
+        map.addLayer({
+          id: "filteredLines",
+          type: "line",
+          source: "filteredLines",
+          paint: {},
+          layout: {
+            visibility: "visible",
+          },
+        });
 
-      // path based on course
-      map.addSource("flattenArray", {
-        type: "geojson",
-        data: turf.featureCollection([turf.lineString(flattenArray)]),
-      });
-      map.addLayer({
-        id: "flattenArray",
-        type: "line",
-        source: "flattenArray",
-        paint: {
-          "line-color": "blue",
-          "line-width": 3,
-          "line-opacity": 0.5,
-        },
-        layout: {
-          visibility: "visible",
-        },
-      });
+        map.addSource("finalFilteredLines", {
+          type: "geojson",
+          data: turf.featureCollection(finalFilteredLines()),
+        });
+        map.addLayer({
+          id: "finalFilteredLines",
+          type: "line",
+          source: "finalFilteredLines",
+          paint: {
+            "line-color": "red",
+            "line-width": 3,
+            "line-opacity": 0.5,
+          },
+          layout: {
+            visibility: "visible",
+          },
+        });
+
+        // path based on course
+        map.addSource("flattenArray", {
+          type: "geojson",
+          data: turf.featureCollection([turf.lineString(flattenArray)]),
+        });
+        map.addLayer({
+          id: "flattenArray",
+          type: "line",
+          source: "flattenArray",
+          paint: {
+            "line-color": "blue",
+            "line-width": 3,
+            "line-opacity": 0.5,
+          },
+          layout: {
+            visibility: "visible",
+          },
+        });
+      }
     });
 
     return () => {

@@ -6,18 +6,27 @@ const UIWork = ({ getData }) => {
   const [fromData, setFromData] = useState("");
   const [toData, setToData] = useState("");
 
+  const { map } = useContext(MapContextMapbox);
+
   const airports = ["MMV", "DPN", "BBB", "VTK", "JJB"];
 
-  console.log("rerender");
+  let from = "";
+  let to = "";
+
+  // if (map) {
+  //   map.on("idle", () => {
+  //     console.log(map.getLayer("finalFilteredLines"));
+  //     console.log(map.getLayoutProperty("finalFilteredLines", "visibility"));
+  //   });
+  // }
+
   return (
     <div className="d-flex uiwork">
       <div>
         <select
           name="airports"
           id="airports"
-          onChange={(e) => {
-            setFromData(e.target.value);
-          }}
+          onChange={(e) => (from = e.target.value)}
         >
           <option value="select">From</option>
           {airports.map((airport, index) => {
@@ -34,9 +43,7 @@ const UIWork = ({ getData }) => {
         <select
           name="airports"
           id="airports"
-          onChange={(e) => {
-            setToData(e.target.value);
-          }}
+          onChange={(e) => (to = e.target.value)}
         >
           <option value="select">To</option>
           {airports.map((airport, index) => {
@@ -52,7 +59,7 @@ const UIWork = ({ getData }) => {
       <button
         type="button"
         onClick={() => {
-          getData({ from: fromData, to: toData });
+          getData({ from: from, to: to });
         }}
       >
         plot
